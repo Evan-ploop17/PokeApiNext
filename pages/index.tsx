@@ -10,7 +10,6 @@ interface Props {
 }
 
 const Home: NextPage<Props> = ({ pokemons }) =>
-  // console.log('pokemons', pokemons);
   (
     <Layout title="Listado de pokemos">
       <Grid.Container gap={2} justify="flex-start">
@@ -22,7 +21,7 @@ const Home: NextPage<Props> = ({ pokemons }) =>
       </Grid.Container>
     </Layout>
   );
-export const getStaticProps: GetStaticProps = async (ctx) => {
+export const getStaticProps: GetStaticProps = async () => {
   const { data } = await pokeApi.get<PokemonListResponse>('/pokemon?limit=151');
   const pokemons: SmallPokemon[] = data.results.map((poke, index) => ({
     ...poke,

@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
+
 import { GetStaticProps, NextPage, GetStaticPaths } from 'next';
-import NextLink from 'next/link';
-import { useRouter } from 'next/router'
-import { Button, Card, Container, Grid, Image, Text, Link } from '@nextui-org/react';
+
+import { Button, Card, Container, Grid, Image, Text } from '@nextui-org/react';
+
 import { pokeApi } from '../../api';
 import { Layout } from '../../components/layouts';
-import { Pokemon, PokemonListResponse } from '../../interfaces';
-import { localFavorites } from '../../utils';
+import { Pokemon } from '../../interfaces';
+import { getPokemonInfo, localFavorites } from '../../utils';
+import confetti from 'canvas-confetti'
 
 interface Props {
   pokemon: any;
@@ -23,13 +25,24 @@ const PokemonPage: NextPage<Props> = ({pokemon}) => {
   const onToggleFavorite = () => {
     localFavorites.toggleFavorite(pokemon.id)  
     setIsInFavorites(!isInFavorites)
+    if(isInFavorites) return;
+    confetti({
+      zIndex: 999,
+      particleCount: 200,
+      spread: 160,
+      angle: -100,
+      origin: {
+        x: 1,
+        y: 0,
+      }
+    })
   }
  
   return (
       <Layout title={`${pokemon.name}`} >
         <Grid.Container css={{marginTop: '5px'}} gap={2}>
           <Grid xs={12} sm={4} >
-            <Card hoverable css={{ padding: '30px' }} >
+            <Card isHoverable css={{ padding: '30px' }} >
               <Card.Body>
                 <Card.Image
                   src={ pokemon.sprites.other?.dream_world.front_default || 'No-image.png'}
@@ -91,8 +104,8 @@ const PokemonPage: NextPage<Props> = ({pokemon}) => {
   )
 }
 
-export const getStaticPaths: GetStaticPaths = async (ctx) => {
-  const pokemons151 = [...Array(151)].map((value, index) => `${index + 1}`)
+export const getStaticPaths: GetStaticPaths = async () => {
+  const pokemons151 = [...Array(151)].map((_, index) => `${index + 1}`)
   return {
     paths: pokemons151.map( id => ({
       params: { id }
@@ -102,12 +115,11 @@ export const getStaticPaths: GetStaticPaths = async (ctx) => {
 }
 
 export const getStaticProps: GetStaticProps = async ({params}) => {
-  const { id } = params as { id: string }
-  const { data } = await pokeApi.get<Pokemon>(`/pokemon/${id}`);
-  
+  const { id } = params as { id: string } // params are received from URL context.params
+
   return {
     props: {
-      pokemon: data
+      pokemon: await getPokemonInfo(id)
     },
   };
 };

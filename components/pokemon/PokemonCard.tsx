@@ -11,12 +11,12 @@ const PokemonCard: FC<Props> = ({pokemon: {id, name, img}}) => {
 
     const router = useRouter()
     const onClickCard = () => {
-        router.push(`/pokemon/${id}`)
+        router.push(`/name/${name}` )
     } 
 
   return (
     <Grid xs={6} sm={3} md={2} xl={1}>
-        <Card hoverable clickable onClick={onClickCard}>
+        <Card isHoverable isPressable onClick={onClickCard}>
             <Card.Body css={{p:1}} >
             <Card.Image
                 src={img}
