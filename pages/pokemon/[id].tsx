@@ -9,6 +9,7 @@ import { Layout } from '../../components/layouts';
 import { Pokemon } from '../../interfaces';
 import { getPokemonInfo, localFavorites } from '../../utils';
 import confetti from 'canvas-confetti'
+import { redirect } from 'next/dist/server/api-utils';
 
 interface Props {
   pokemon: any;
@@ -104,23 +105,38 @@ const PokemonPage: NextPage<Props> = ({pokemon}) => {
   )
 }
 
+// Siempre necesita al GetStaticProps. Corre en el building 
+// Si quiero que vaya y busque si existe una página después del build se deben hacer modificaciones V82
 export const getStaticPaths: GetStaticPaths = async () => {
   const pokemons151 = [...Array(151)].map((_, index) => `${index + 1}`)
   return {
     paths: pokemons151.map( id => ({
       params: { id }
     })),
-    fallback: false
+    // fallback: false,
+    fallback: 'blocking'
   }
 }
 
+// No necesita del GetStaticPaths
 export const getStaticProps: GetStaticProps = async ({params}) => {
   const { id } = params as { id: string } // params are received from URL context.params
+  const pokemon = await getPokemonInfo(id)
+
+  if(!pokemon){
+    return {
+      redirect: {
+        destination: '/', // redirigir al inicio
+        permanent: false // esto lo usan los bots de google. V82 5:00. Permanente no deja volver a la página anterior
+      }
+    }
+  }
 
   return {
     props: {
-      pokemon: await getPokemonInfo(id)
+      pokemon
     },
+    revalidate: 86400, // 60 * 60 * 24
   };
 };
 

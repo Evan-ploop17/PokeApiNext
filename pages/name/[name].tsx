@@ -107,14 +107,15 @@ const PokemonByNamePage: NextPage<Props> = ({pokemon}) => {
 
 // Generate all possible paths
 export const getStaticPaths: GetStaticPaths = async () => {
-    const { data } = await pokeApi.get<PokemonListResponse>('/pokemon?limit=151')
-    const pokemonNames = data.results.map(pokemon => pokemon.name )
+  const { data } = await pokeApi.get<PokemonListResponse>('/pokemon?limit=151')
+  const pokemonNames = data.results.map(pokemon => pokemon.name )
 
   return {
     paths: pokemonNames.map( name => ({
       params: { name }
     })),
-    fallback: false
+    // fallback: false,
+    fallback: 'blocking'
   }
 }
 
@@ -122,11 +123,21 @@ export const getStaticPaths: GetStaticPaths = async () => {
 export const getStaticProps: GetStaticProps = async ({params}) => {
 
     const { name } = params as { name: string } // params are received from URL context.params
+    let pokemon = await getPokemonInfo(name)
+
+    if(!pokemon){
+      return {
+        redirect: {
+          destination: '/', // redirigir al inicio
+          permanent: false, // esto lo usan los bots de google. V82 5:00. Permanente no deja volver a la página anterior
+        }
+      }
+    }
 
     return {
         props: {
-            pokemon: await getPokemonInfo(name)
-        }
+            pokemon 
+        },
     }
 }
 
